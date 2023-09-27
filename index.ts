@@ -9,6 +9,9 @@ import {
   timer,
   merge,
   share,
+  exhaustMap,
+  takeUntil,
+  take,
 } from 'rxjs';
 
 // fromEvent(document, 'click')
@@ -17,6 +20,12 @@ import {
 //     map((event: MouseEvent) => ({ x: event.x, y: event.y }))
 //   )
 //   .subscribe(console.log);
+
+/*----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------*/
+// Todo lo que se pueda se debe ejecutar dentro de la funcion pipe
+
 function pruebaObsShare() {
   // interval(x) genera un numero cada x milisegundos
   const intervalo$ = interval(1000).pipe(
@@ -27,12 +36,13 @@ function pruebaObsShare() {
   );
   intervalo$.subscribe((v) => console.log('num: ', v));
   setTimeout(() => {
+    // setTimeout retrasa la ejecucion de algo
     intervalo$.subscribe((v) => console.log('valor: ', v));
   }, 3000);
 }
 function pruebaMerge() {
-  const intervalo1$ = interval(1000).pipe(map((num) => 'intervalo1.' + num));
-  const intervalo2$ = interval(2000).pipe(map((num) => 'intervalo2.' + num));
+  const intervalo1$ = interval(1000).pipe(map((num) => '11##.' + num));
+  const intervalo2$ = interval(2000).pipe(map((num) => '22@@.' + num));
   merge(intervalo1$, intervalo2$).subscribe(console.log);
 }
 
@@ -62,3 +72,7 @@ function pruebaMerge() {
 // // Aplicamos los descuentos
 // applyDiscounts(product); // 10201.005
 // console.log(product.price);
+
+const clicks = fromEvent(document, 'click');
+const result = clicks.pipe(exhaustMap(() => interval(1000).pipe(take(5))));
+result.subscribe((x) => console.log(x));
