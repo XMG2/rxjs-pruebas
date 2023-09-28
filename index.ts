@@ -12,6 +12,12 @@ import {
   exhaustMap,
   takeUntil,
   take,
+  concat,
+  of,
+  from,
+  delay,
+  reduce,
+  distinctUntilChanged,
 } from 'rxjs';
 
 // fromEvent(document, 'click')
@@ -72,7 +78,19 @@ function pruebaMerge() {
 // // Aplicamos los descuentos
 // applyDiscounts(product); // 10201.005
 // console.log(product.price);
+function pruebaExhaustMap() {
+  const clicks = fromEvent(document, 'click');
+  const result = clicks.pipe(exhaustMap(() => interval(1000).pipe(take(5))));
+  result.subscribe((x) => console.log(x));
+}
 
-const clicks = fromEvent(document, 'click');
-const result = clicks.pipe(exhaustMap(() => interval(1000).pipe(take(5))));
-result.subscribe((x) => console.log(x));
+fromEvent(document, 'keyup')
+  .pipe(
+    // distinctUntilChanged(
+    //   (pre: KeyboardEvent, act: KeyboardEvent) => pre.code == act.code
+    // ),
+    debounceTime(50),
+    map((e: KeyboardEvent) => e.code)
+  )
+  // 'Space', 'Enter'
+  .subscribe(console.log);
