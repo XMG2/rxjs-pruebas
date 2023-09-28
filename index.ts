@@ -18,14 +18,15 @@ import {
   delay,
   reduce,
   distinctUntilChanged,
+  auditTime,
+  throttleTime,
+  tap,
+  range,
+  concatMap,
+  delayWhen,
+  audit,
+  timeInterval,
 } from 'rxjs';
-
-// fromEvent(document, 'click')
-//   .pipe(
-//     debounceTime(200),
-//     map((event: MouseEvent) => ({ x: event.x, y: event.y }))
-//   )
-//   .subscribe(console.log);
 
 /*----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -51,46 +52,87 @@ function pruebaMerge() {
   const intervalo2$ = interval(2000).pipe(map((num) => '22@@.' + num));
   merge(intervalo1$, intervalo2$).subscribe(console.log);
 }
-
-// const compulsoryDiscount = (product) => (product.price *= 0.9);
-// const superPremiumDiscount = (product) => {
-//   if (product.type === 'SUPER_PREMIUM') {
-//     product.price *= 0.95;
-//   }
-// };
-// const greatPriceDiscount = (product) => {
-//   if (product.price > 10000) {
-//     product.price *= 0.97;
-//   }
-// };
-// const applyDiscounts = (product) => {
-//   compulsoryDiscount(product);
-//   superPremiumDiscount(product);
-//   greatPriceDiscount(product);
-// };
-// const product = {
-//   name: 'Rélox 8000',
-//   type: 'SUPER_PREMIUM',
-//   price: 12300,
-//   description:
-//     'Reloj de oro bañado en súper oro, con incrustaciones de diamantes y engranajes de plastigoma.',
-// };
-// // Aplicamos los descuentos
-// applyDiscounts(product); // 10201.005
-// console.log(product.price);
+function aplicarDescuentos() {
+  const compulsoryDiscount = (product) => (product.price *= 0.9);
+  const superPremiumDiscount = (product) => {
+    if (product.type === 'SUPER_PREMIUM') {
+      product.price *= 0.95;
+    }
+  };
+  const greatPriceDiscount = (product) => {
+    if (product.price > 10000) {
+      product.price *= 0.97;
+    }
+  };
+  const applyDiscounts = (product) => {
+    compulsoryDiscount(product);
+    superPremiumDiscount(product);
+    greatPriceDiscount(product);
+  };
+  const product = {
+    name: 'Rélox 8000',
+    type: 'SUPER_PREMIUM',
+    price: 12300,
+    description:
+      'Reloj de oro bañado en súper oro, con incrustaciones de diamantes y engranajes de plastigoma.',
+  };
+  // Aplicamos los descuentos
+  applyDiscounts(product); // 10201.005
+  console.log(product.price);
+}
 function pruebaExhaustMap() {
   const clicks = fromEvent(document, 'click');
   const result = clicks.pipe(exhaustMap(() => interval(1000).pipe(take(5))));
   result.subscribe((x) => console.log(x));
 }
-
-fromEvent(document, 'keyup')
-  .pipe(
-    // distinctUntilChanged(
-    //   (pre: KeyboardEvent, act: KeyboardEvent) => pre.code == act.code
-    // ),
-    debounceTime(50),
-    map((e: KeyboardEvent) => e.code)
-  )
-  // 'Space', 'Enter'
-  .subscribe(console.log);
+function consoleLogKeyboard() {
+  fromEvent(document, 'keyup')
+    .pipe(
+      // distinctUntilChanged(
+      //   (pre: KeyboardEvent, act: KeyboardEvent) => pre.code == act.code
+      // ), // Es necesario que las teclas sean distintas
+      throttleTime(50),
+      map((e: KeyboardEvent) => e.code)
+    )
+    // 'Space', 'Enter'
+    .subscribe(console.log);
+}
+function pruebaTap() {
+  const num = [];
+  range(200)
+    .pipe(
+      tap((v) => {
+        console.log(v);
+        num.push(v * 10);
+      }),
+      map((v) => v * 3),
+      filter((v) => v % 15 == 0),
+      map((v) => num.push('' + v))
+    )
+    .subscribe({
+      complete: () => {
+        console.log(num);
+      },
+    });
+  // of(1, 2, 3)
+  //   .pipe(
+  //     concatMap((n) =>
+  //       interval(1000).pipe(
+  //         take(Math.round(Math.random() * 10)),
+  //         map(() => 'X'),
+  //         tap({ complete: () => console.log(`Done with ${n}`) })
+  //       )
+  //     )
+  //   )
+  //   .subscribe(console.log);
+}
+pruebaTap();
+function clickInterval() {
+  fromEvent(document, 'click')
+    .pipe(
+      timeInterval(), // da un objeto {value: x, interval: y} "y" siendo el tiempo
+      // en milisegundos que ha pasado desde la ultima vez que se obtuvo un valor
+      map((v) => v.interval)
+    )
+    .subscribe(console.log);
+}
