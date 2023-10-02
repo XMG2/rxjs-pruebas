@@ -126,7 +126,7 @@ function pruebaTap() {
   //   )
   //   .subscribe(console.log);
 }
-pruebaTap();
+
 function clickInterval() {
   fromEvent(document, 'click')
     .pipe(
